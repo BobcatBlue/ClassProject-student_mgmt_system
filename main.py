@@ -1,3 +1,4 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QGridLayout, \
      QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem, QDialog,\
      QComboBox
@@ -23,9 +24,9 @@ class MainWindow(QMainWindow):
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
 
-        edit_action = QAction("Search", self)
-        edit_action.triggered.connect(self.search)
-        edit_menu_item.addAction(edit_action)
+        search_action = QAction("Search", self)
+        search_action.triggered.connect(self.search)
+        edit_menu_item.addAction(search_action)
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
@@ -115,8 +116,24 @@ class SearchDialog(QDialog):
         # Add the search button
         search_button = QPushButton("Search")
         layout.addWidget(search_button)
+        search_button.clicked.connect(self.search)
 
         self.setLayout(layout)
+
+    def search(self):
+        name = self.search_term.text()
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        # result = cursor.execute("SELECT * FROM students WHERE name = ?", (name,))
+        # rows = list(result)
+        # print(rows)
+        items = student_mgmt_sys.table.findItems(name, Qt.MatchFlag.MatchFixedString)
+        for item in items:
+            print(item)
+            student_mgmt_sys.table.item(item.row(), 1).setSelected(True)
+
+        cursor.close()
+        connection.close()
 
 app = QApplication(sys.argv)
 student_mgmt_sys = MainWindow()
