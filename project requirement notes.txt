@@ -1,0 +1,9 @@
+Project Requirements:
+(put yourself in the shoes of the user)
+
+- View students (ID, name, course they are enrolled in, phone #)
+- Insert new records
+- Update existing records
+- Delete records
+- Search records
+- Sort records
