@@ -14,6 +14,7 @@ class MainWindow(QMainWindow):
 
         file_menu_item = self.menuBar().addMenu("&File")
         help_menu_item = self.menuBar().addMenu("&Help")
+        edit_menu_item = self.menuBar().addMenu("&Edit")
 
         add_student_action = QAction("Add Student", self)
         add_student_action.triggered.connect(self.insert)
@@ -22,12 +23,15 @@ class MainWindow(QMainWindow):
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
 
+        edit_action = QAction("Search", self)
+        edit_action.triggered.connect(self.search)
+        edit_menu_item.addAction(edit_action)
+
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(("ID", "Name", "Course", "Mobile"))
         self.table.verticalHeader().setVisible(False)
         self.setCentralWidget(self.table)
-
 
     def load_data(self):
         connection = sqlite3.connect("database.db")
@@ -40,8 +44,12 @@ class MainWindow(QMainWindow):
         connection.close()
 
     def insert(self):
-        dialog = InsertDialog()
-        dialog.exec()
+        insert_dialog = InsertDialog()
+        insert_dialog.exec()
+
+    def search(self):
+        search_dialog = SearchDialog()
+        search_dialog.exec()
 
 
 class InsertDialog(QDialog):
@@ -76,7 +84,6 @@ class InsertDialog(QDialog):
 
         self.setLayout(layout)
 
-
     def add_student(self):
         name = self.student_name.text()
         course = self.course_name.itemText(self.course_name.currentIndex())
@@ -91,8 +98,25 @@ class InsertDialog(QDialog):
         student_mgmt_sys.load_data()
 
 
+class SearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student Records")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
 
+        layout = QVBoxLayout()
 
+        # Add the search box
+        self.search_term = QLineEdit()
+        self.search_term.setPlaceholderText("What are you looking for?")
+        layout.addWidget(self.search_term)
+
+        # Add the search button
+        search_button = QPushButton("Search")
+        layout.addWidget(search_button)
+
+        self.setLayout(layout)
 
 app = QApplication(sys.argv)
 student_mgmt_sys = MainWindow()
