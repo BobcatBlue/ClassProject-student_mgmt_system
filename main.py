@@ -151,6 +151,7 @@ class EditDialog(QDialog):
         # Refresh the table
         student_mgmt_sys.load_data()
 
+
 class DeleteDialog(QDialog):
     pass
 
