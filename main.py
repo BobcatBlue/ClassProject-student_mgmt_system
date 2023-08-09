@@ -1,7 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QGridLayout, \
      QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem, QDialog,\
-     QComboBox, QToolBar, QStatusBar
+     QComboBox, QToolBar, QStatusBar, QMessageBox
 from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
@@ -105,11 +105,11 @@ class EditDialog(QDialog):
         layout = QVBoxLayout()
 
         # Get student name from selected row
-        index = student_mgmt_sys.table.currentRow()
-        student_name = student_mgmt_sys.table.item(index, 1).text()
+        index = main_window.table.currentRow()
+        student_name = main_window.table.item(index, 1).text()
 
         # Get id from selected row
-        self.student_id = student_mgmt_sys.table.item(index, 0).text()
+        self.student_id = main_window.table.item(index, 0).text()
 
         # Add student name widget
         self.student_name = QLineEdit()
@@ -117,7 +117,7 @@ class EditDialog(QDialog):
         layout.addWidget(self.student_name)
 
         # Add combo box of courses
-        course_name = student_mgmt_sys.table.item(index, 2).text()
+        course_name = main_window.table.item(index, 2).text()
         self.course_name = QComboBox()
         courses = ["Biology", "Math", "Astronomy", "Physics"]
         self.course_name.addItems(courses)
@@ -125,7 +125,7 @@ class EditDialog(QDialog):
         layout.addWidget(self.course_name)
 
         # Add mobile widget
-        mobile_number = student_mgmt_sys.table.item(index, 3).text()
+        mobile_number = main_window.table.item(index, 3).text()
         self.mobile = QLineEdit()
         self.mobile.setText(mobile_number)
         layout.addWidget(self.mobile)
@@ -149,11 +149,45 @@ class EditDialog(QDialog):
         cursor.close()
         connection.close()
         # Refresh the table
-        student_mgmt_sys.load_data()
+        main_window.load_data()
 
 
 class DeleteDialog(QDialog):
-    pass
+    def __init__(self):
+        super().__init__()
+        layout = QGridLayout()
+
+        # Add "are you sure?" message
+        self.confirmation = QLabel("Are you sure you want to delete this record?")
+        self.yes_button = QPushButton("Yes")
+        self.no_button = QPushButton("No")
+
+        layout.addWidget(self.confirmation, 0, 0, 1, 2)
+        layout.addWidget(self.yes_button, 1, 0)
+        layout.addWidget(self.no_button, 1, 1)
+
+        self.setLayout(layout)
+
+        self.yes_button.clicked.connect(self.delete_student)
+
+    def delete_student(self):
+        # Get index and student ID for selected row
+        index = main_window.table.currentRow()
+        student_id = main_window.table.item(index, 0).text()
+
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM students WHERE id = ?", (student_id, ))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        main_window.load_data()
+        self.close()
+
+        confirmation_widget = QMessageBox()
+        confirmation_widget.setWindowTitle("Confirmation")
+        confirmation_widget.setText("Record successfully deleted")
+        confirmation_widget.exec()
 
 
 class InsertDialog(QDialog):
@@ -199,7 +233,8 @@ class InsertDialog(QDialog):
         connection.commit()
         cursor.close()
         connection.close()
-        student_mgmt_sys.load_data()
+        main_window.load_data()
+        self.close()
 
 
 class SearchDialog(QDialog):
@@ -227,16 +262,16 @@ class SearchDialog(QDialog):
         name = self.search_term.text()
         connection = sqlite3.connect("database.db")
         cursor = connection.cursor()
-        items = student_mgmt_sys.table.findItems(name, Qt.MatchFlag.MatchFixedString)
+        items = main_window.table.findItems(name, Qt.MatchFlag.MatchFixedString)
         for item in items:
             print(item)
-            student_mgmt_sys.table.item(item.row(), 1).setSelected(True)
+            main_window.table.item(item.row(), 1).setSelected(True)
 
         cursor.close()
         connection.close()
 
 app = QApplication(sys.argv)
-student_mgmt_sys = MainWindow()
-student_mgmt_sys.show()
-student_mgmt_sys.load_data()
+main_window = MainWindow()
+main_window.show()
+main_window.load_data()
 sys.exit(app.exec())
